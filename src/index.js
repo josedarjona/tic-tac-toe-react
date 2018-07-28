@@ -65,15 +65,32 @@ class Square extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            history: [{squares: Array(9).fill(null)}],
-            xIsNext: true,
+            history: [{squares: Array(9).fill(null)}]
+            ,xIsNext: true
+            ,stepNumber: 0,
         }
     }
+
+    jumpTo(step){
+      this.setState({
+        stepNumber: step
+        ,xIsNext: (step % 2) === 0
+        ,
+      })
+    }
+
+    
 
 
 
     putAnXorO(i){
-        const squares = this.state.history[this.state.history.length - 1].squares.slice();
+        // const squares = this.state.history[this.state.history.length - 1].squares.slice();
+        if(this.state.stepNumber !== this.state.history.length -1){
+          return;
+        }
+        const history = this.state.history.slice(0, this.state.stepNumber +1)
+        const current = history[history.length -1];
+        const squares = current.squares.slice();
 
         if(calculateWinner(squares) || squares[i]){
             return
@@ -84,18 +101,44 @@ class Square extends React.Component {
                 squares: squares
             }]),
             xIsNext: !this.state.xIsNext,
+            stepNumber: history.length,
         });
+    }
+
+
+    resetTheGame(){
+      this.setState({
+        history: [{squares: Array(9).fill(null)}]
+            ,xIsNext: true
+            ,stepNumber: 0,
+      })
+    }
+
+
+    showTheResetButton(){
+      
+      
+      // const winner = calculateWinner(this.state.history[this.state.history.length - 1].squares)
+      if(calculateWinner(this.state.history[this.state.history.length - 1].squares) || this.state.history.length === 10){
+        return(
+         <button onClick={()=> this.resetTheGame()}>new game</button>
+        )
+      }
+
+
+
+
     }
 
     render() {
         const history = this.state.history;
-        const current = history[history.length - 1];
+        const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
 
         const moves = history.map((step, move)=>{
             const desc = move ? `Go to move # ${move}` : 'Go to game start';
             return (
-                <li>
+                <li key={move}>
                     <button onClick={()=> this.jumpTo(move)}>
                         {desc}
                     </button>
@@ -116,6 +159,8 @@ class Square extends React.Component {
       return (
         <div className="game">
           <div className="game-board">
+          {/* <button onClick={()=> this.resetTheGame()}>new game</button> */}
+          {this.showTheResetButton()}
             <Board
             squares = {current.squares}
             onClick = {(i)=> this.putAnXorO(i)}
